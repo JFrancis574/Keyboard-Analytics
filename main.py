@@ -41,30 +41,40 @@ def rawPairs(rawKeyData):
         return pairsArray
     
 def genStatsPairs(dataframe):
-    # Prelim
-    dataframe['holdTime'] = dataframe['up']-dataframe['down']
-    # A negative value indicates key which were pressed at the same time
-    dataframe['floatTime'] = dataframe['down'].shift(-1)-dataframe['up']
-    
     # Averages, medians, modes
     mean = pd.DataFrame(dataframe.groupby('Key').mean())
     median = pd.DataFrame(dataframe.groupby('Key').median())
     # mode = pd.DataFrame(dataframe.groupby('Key').mode())
-    count = pd.DataFrame(dataframe.groupby('Key').count())
+    count = pd.DataFrame(dataframe.groupby('Key').size())
     
-    print(count.head())
-    print(mean.head())
-    return dataframe
+    stats = mean.merge(median, how='inner', on='Key')
+    stats = stats.merge(count, how='inner', on='Key')
+    stats.rename(
+            {'holdTime_x' : 'meanHoldTime', 
+             'floatTime_x' : 'meanFloatTime', 
+             'holdTime_y' : 'medianHoldTime', 
+             'floatTime_y' : 'medianFloatTime',
+             0 : 'Count'}, axis='columns', inplace=True, errors='raise')
+    stats.drop(labels=['down_x', 'up_x', 'down_y', 'up_y'], inplace=True, axis='columns')
 
+    print(stats.head())
+    return stats
 
 data, start = record(10)
-rawKeys = process(data, start)
-finalData = rawPairs(rawKeys)
+finalData = rawPairs(process(data, start))
 
 pairsDataFrame = pd.DataFrame(finalData, columns=['Key', 'down', 'up'])
-# print(pairsDataFrame.head())
-pairsDataFrame = genStatsPairs(pairsDataFrame)
-# print(pairsDataFrame.head())
 pairsDataFrame.to_json('keyData.json')
+# print(pairsDataFrame.head())
+# pairsDataFrame = pd.read_json('keyData.json')
+
+# Prelim
+pairsDataFrame['holdTime'] = pairsDataFrame['up']-pairsDataFrame['down']
+# A negative value indicates key which were pressed at the same time
+pairsDataFrame['floatTime'] = pairsDataFrame['down'].shift(-1)-pairsDataFrame['up']
+
+stats = genStatsPairs(pairsDataFrame)
+# print(pairsDataFrame.head())
+
 
 
