@@ -1,3 +1,4 @@
+import string
 import time
 import keyboard as kb
 import numpy as np
@@ -60,8 +61,19 @@ def genStatsPairs(dataframe):
     print(stats.head())
     return stats
 
+
+
+def wordFormer(pairs):
+    currentWord = []
+    for i, j in enumerate(pairs):
+        print(i, j)
+
+
+
+
 data, start = record(10)
 finalData = rawPairs(process(data, start))
+words = wordFormer(finalData)
 
 pairsDataFrame = pd.DataFrame(finalData, columns=['Key', 'down', 'up'])
 pairsDataFrame.to_json('keyData.json')
@@ -73,7 +85,7 @@ pairsDataFrame['holdTime'] = pairsDataFrame['up']-pairsDataFrame['down']
 # A negative value indicates key which were pressed at the same time
 pairsDataFrame['floatTime'] = pairsDataFrame['down'].shift(-1)-pairsDataFrame['up']
 
-stats = genStatsPairs(pairsDataFrame)
+# stats = genStatsPairs(pairsDataFrame)
 # print(pairsDataFrame.head())
 
 
